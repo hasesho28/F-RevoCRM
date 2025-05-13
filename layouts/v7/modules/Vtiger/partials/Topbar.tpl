@@ -21,7 +21,12 @@
 </script>
 
 {* Web Components の読み込み *}
-<script type="module" src="/assets/react-web-components/dist/web-components.js"></script>
+{if $IS_PRODUCTION}
+	<script type="module" src="/github/assets/react-web-components/dist/web-components.js"></script>
+{else}
+	<script type="module" src="http://localhost:5173/@vite/client"></script>
+	<script type="module" src="http://localhost:5173/src/main.ts"></script>
+{/if}
 
 {* コンポーネントの使用 *}
 <react-button text="送信" color="#007bff"></react-button>
