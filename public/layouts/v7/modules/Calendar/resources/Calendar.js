@@ -2008,6 +2008,11 @@ Vtiger.Class("Calendar_Calendar_Js", {
 			// 編集モード: record IDを設定（WebComponents版で使用）
 			triggerParams.record = record;
 
+			// 複製モードフラグを設定（WebComponents版で使用）
+			if (isDuplicate === true) {
+				triggerParams.isDuplicate = true;
+			}
+
 			try {
 				var calendarContainer = thisInstance.getCalendarViewContainer();
 				if (calendarContainer && calendarContainer.length) {

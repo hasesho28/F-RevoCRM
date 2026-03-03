@@ -34,6 +34,8 @@ export interface ExtendedQuickCreateProps extends QuickCreateProps {
   variant?: 'default' | 'calendar';
   /** Record ID for edit mode */
   recordId?: string;
+  /** Duplicate mode flag (when true, treat as new record even with recordId) */
+  isDuplicate?: boolean;
 }
 
 /**
@@ -95,6 +97,7 @@ const QuickCreateInner: React.FC<ExtendedQuickCreateProps> = ({
   isOpen: externalIsOpen,
   initialData = {},
   recordId,
+  isDuplicate = false,
   onSave,
   onCancel,
   onGoToFullForm,
@@ -106,7 +109,9 @@ const QuickCreateInner: React.FC<ExtendedQuickCreateProps> = ({
   const isCalendarModule = module === 'Calendar' || module === 'Events';
   const variant = explicitVariant ?? (isCalendarModule ? 'calendar' : 'default');
   const isCalendarVariant = variant === 'calendar';
-  const isEditMode = !!recordId;
+  // 複製モード時はrecordIdが存在しても編集モードではなく新規作成として扱う
+  const isDuplicateMode = isDuplicate === true;
+  const isEditMode = !!recordId && !isDuplicateMode;
 
   // Modal state
   const [internalIsOpen, setInternalIsOpen] = useState(false);
@@ -137,7 +142,9 @@ const QuickCreateInner: React.FC<ExtendedQuickCreateProps> = ({
   const successTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // ========================================
-  // Hooks for record data (edit mode)
+  // Hooks for record data (edit mode and duplicate mode)
+  // 編集モードと複製モードの両方でrecordDataを取得する
+  // 複製モードではデータのコピー元として使用
   // ========================================
   const {
     data: recordData,
@@ -146,7 +153,7 @@ const QuickCreateInner: React.FC<ExtendedQuickCreateProps> = ({
   } = useRecordData({
     module: isCalendarVariant ? (module === 'Calendar' ? 'Calendar' : 'Events') : module,
     recordId: recordId,
-    skip: !isEditMode || !isOpen
+    skip: (!isEditMode && !isDuplicateMode) || !isOpen
   });
 
   // ========================================
@@ -205,9 +212,9 @@ const QuickCreateInner: React.FC<ExtendedQuickCreateProps> = ({
   // Computed values based on variant
   // ========================================
   const fields = isCalendarVariant ? calendarCurrentFields : defaultFields;
-  // Include recordDataLoading in overall loading state for edit mode
+  // Include recordDataLoading in overall loading state for edit mode and duplicate mode
   const fieldsLoading = (isCalendarVariant ? calendarFieldsLoading : defaultFieldsLoading) ||
-    (isEditMode && recordDataLoading);
+    ((isEditMode || isDuplicateMode) && recordDataLoading);
   const fieldsError = isCalendarVariant ? calendarFieldsError : defaultFieldsError || recordDataError;
   const moduleLabel = isCalendarVariant
     ? (activeTab === 'Calendar' ? t('LBL_TASK') : t('LBL_EVENT'))
@@ -265,20 +272,28 @@ const QuickCreateInner: React.FC<ExtendedQuickCreateProps> = ({
   useEffect(() => {
     // For edit mode, wait for recordData to be loaded
     if (!isCalendarVariant && isOpen && defaultFields.length > 0 && !isInitializedRef.current) {
-      // For edit mode, wait for recordData (skip if still loading)
-      if (isEditMode && recordDataLoading) {
+      // For edit mode or duplicate mode, wait for recordData (skip if still loading)
+      if ((isEditMode || isDuplicateMode) && recordDataLoading) {
         return;
       }
 
-      // Merge initialData and recordData (recordData takes priority for edit mode)
+      // Merge initialData and recordData
+      // 編集モードと複製モードの両方でrecordDataを使用する
+      // 複製モードではデータのコピー元として使用
       const initial: Record<string, any> = {
         ...initialData,
-        ...(isEditMode && recordData ? recordData : {})
+        ...((isEditMode || isDuplicateMode) && recordData ? recordData : {})
       };
 
-      // Add record parameter for edit mode
+      // Add record parameter for edit mode only (NOT for duplicate mode)
+      // 複製モードではrecordパラメータを追加しない（新規作成として保存するため）
       if (isEditMode && recordId) {
         initial.record = recordId;
+      }
+
+      // 複製モードの場合、recordパラメータを明示的に除外
+      if (isDuplicateMode && initial.record) {
+        delete initial.record;
       }
 
       defaultFields.forEach(field => {
@@ -300,14 +315,16 @@ const QuickCreateInner: React.FC<ExtendedQuickCreateProps> = ({
       clearSaveError();
       isInitializedRef.current = true;
     }
-  }, [isCalendarVariant, isOpen, defaultFields, initialData, isEditMode, recordId, recordData, recordDataLoading, clearSaveError]);
+  }, [isCalendarVariant, isOpen, defaultFields, initialData, isEditMode, isDuplicateMode, recordId, recordData, recordDataLoading, clearSaveError]);
 
   /**
-   * Initialize form data (calendar variant - edit mode)
+   * Initialize form data (calendar variant - edit mode or duplicate mode)
    * Uses recordData from useRecordData hook (fetched via GetRecord API)
+   * 複製モードでも編集モードと同様にrecordDataを使用してデータをコピーする
    */
   useEffect(() => {
-    if (!isCalendarVariant || !isOpen || !isEditMode || isInitializedRef.current) {
+    // 編集モードまたは複製モードで実行（複製モードでもrecordDataからデータをコピーする）
+    if (!isCalendarVariant || !isOpen || (!isEditMode && !isDuplicateMode) || isInitializedRef.current) {
       return;
     }
 
@@ -331,9 +348,21 @@ const QuickCreateInner: React.FC<ExtendedQuickCreateProps> = ({
 
     // transformInitialDataForEdit already handles datetime conversion
     // but recordData from useRecordData is already transformed, so we need to handle both cases
-    const transformedData = recordData
-      ? { ...recordData, record: recordId } // recordData is already transformed
-      : transformInitialDataForEdit(initialData, activeTab);
+    let transformedData;
+    if (recordData) {
+      // recordData is already transformed
+      // 編集モードの場合のみrecordパラメータを追加、複製モードでは追加しない
+      if (isDuplicateMode) {
+        // 複製モード: recordパラメータを除外して新規作成として保存
+        const { record, ...dataWithoutRecord } = recordData;
+        transformedData = dataWithoutRecord;
+      } else {
+        // 編集モード: recordパラメータを追加
+        transformedData = { ...recordData, record: recordId };
+      }
+    } else {
+      transformedData = transformInitialDataForEdit(initialData, activeTab);
+    }
 
     // Determine tab based on activitytype
     const activityType = dataSource.activitytype;
@@ -351,13 +380,15 @@ const QuickCreateInner: React.FC<ExtendedQuickCreateProps> = ({
     }
 
     isInitializedRef.current = true;
-  }, [isCalendarVariant, isOpen, isEditMode, initialData, recordData, recordDataLoading, recordId, activeTab, transformInitialDataForEdit]);
+  }, [isCalendarVariant, isOpen, isEditMode, isDuplicateMode, initialData, recordData, recordDataLoading, recordId, activeTab, transformInitialDataForEdit]);
 
   /**
    * Initialize form data (calendar variant - new mode)
+   * 複製モードでは編集/複製モードの初期化処理を使用するため、ここではスキップ
    */
   useEffect(() => {
-    if (!isCalendarVariant || isEditMode || !isOpen || isInitializedRef.current) {
+    // 複製モードは編集/複製モードの初期化処理で処理されるためスキップ
+    if (!isCalendarVariant || isEditMode || isDuplicateMode || !isOpen || isInitializedRef.current) {
       return;
     }
 
