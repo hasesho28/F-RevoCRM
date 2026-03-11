@@ -14,6 +14,8 @@ export interface QuickCreateProps {
   isOpen?: boolean;
   /** 初期値（関連レコードからの値等） */
   initialData?: Record<string, any>;
+  /** 複製モードフラグ（trueの場合、recordIdが存在しても新規作成として扱う） */
+  isDuplicate?: boolean;
   /** 保存成功時コールバック */
   onSave?: (result: QuickCreateSaveResult) => void;
   /** キャンセル時コールバック */
