@@ -550,13 +550,19 @@ Vtiger.Class('Vtiger_Index_Js', {
 			quickCreate.setAttribute('record-id', params.record);
 		}
 
+		// 複製モードの場合はis-duplicateを設定
+		// 複製モードではrecordIdでデータを取得するが、保存時は新規作成として扱う
+		if (params.isDuplicate) {
+			quickCreate.setAttribute('is-duplicate', 'true');
+		}
+
 		// 初期データがあれば設定
 		if (params.data) {
 			quickCreate.setAttribute('initial-data', JSON.stringify(params.data));
 		}
 
-		// 編集モードかどうか
-		var isEditMode = !!params.record;
+		// 編集モードかどうか（複製モードは編集モードではない）
+		var isEditMode = !!params.record && !params.isDuplicate;
 
 		// 保存前のコールバック（繰り返し活動の確認モーダル表示用）
 		// Calendar/Eventsモジュールで繰り返し活動を編集する場合に使用
@@ -690,16 +696,22 @@ Vtiger.Class('Vtiger_Index_Js', {
 
 			// WebComponents版QuickCreateが有効な場合はそちらを使用
 			if (thisInstance.isWebComponentsQuickCreateEnabled(quickCreateModuleName)) {
-				// URLからrecordパラメータを抽出（編集モード対応）
+				// URLからrecord, isDuplicateパラメータを抽出（編集・複製モード対応）
+				// ただし、paramsに既に設定されている値を優先
 				if (quickCreateUrl && quickCreateUrl.indexOf('record=') !== -1) {
 					var urlParams = new URLSearchParams(quickCreateUrl.split('?')[1] || quickCreateUrl);
 					var recordId = urlParams.get('record');
 					var mode = urlParams.get('mode');
-					if (recordId) {
+					var isDuplicateFromUrl = urlParams.get('isDuplicate');
+					if (recordId && !params.record) {
 						params.record = recordId;
 					}
-					if (mode) {
+					if (mode && !params.mode) {
 						params.mode = mode;
+					}
+					// 複製モードフラグを設定（paramsに既に設定されている場合は優先）
+					if (isDuplicateFromUrl === 'true' && !params.isDuplicate) {
+						params.isDuplicate = true;
 					}
 				}
 				app.helper.showProgress();
