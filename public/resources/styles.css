@@ -692,8 +692,9 @@ button#advanceIntiateSave + input {
 
 /* モバイル: 2列 + 全幅モーダル */
 @media (max-width: 767px) {
-  /* クイック作成メニューが開いている時、カレンダーのアクションバーを非表示にする（iPhoneでのz-index問題対策） */
-  body:has(.dropdown.open > .quickCreateDropdown) .app-nav .module-action-bar {
+  /* クイック作成メニューが開いている時、カレンダーのアクションバーとアプリアイコンを非表示にする（iPhoneでのz-index問題対策） */
+  body:has(.dropdown.open > .quickCreateDropdown) .app-nav .module-action-bar,
+  body:has(.dropdown.open > .quickCreateDropdown) .app-indicator-icon-container {
     visibility: hidden;
   }
   /* 開いている時だけモーダル表示（visibility: visible !importantでドロップダウン自体は常に表示） */
