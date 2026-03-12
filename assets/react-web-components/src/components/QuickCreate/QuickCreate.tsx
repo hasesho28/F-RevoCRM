@@ -177,7 +177,7 @@ const QuickCreateInner: React.FC<ExtendedQuickCreateProps> = ({
     isSaving: defaultIsSaving,
     error: defaultSaveError,
     clearError: clearDefaultSaveError
-  } = useQuickCreateSave(isCalendarVariant ? '' : module);
+  } = useQuickCreateSave(isCalendarVariant ? '' : module, defaultFields);
 
   const { getFilteredFields, getFieldsToClear, hasDependency } = usePicklistDependency(picklistDependency);
 
@@ -713,9 +713,23 @@ const QuickCreateInner: React.FC<ExtendedQuickCreateProps> = ({
 
     // Calendar系モジュールの場合、datetime-local形式を date + time に分割
     // Edit.phpはdate_start/time_start、due_date/time_endを別々のパラメータとして受け取るため
-    const processedFormData = isCalendarVariant
+    let processedFormData = isCalendarVariant
       ? transformCalendarDateTime(targetFormData)
-      : targetFormData;
+      : { ...targetFormData };
+
+    // ProductTaxフィールド（UIType 83）のチェックボックスを追加
+    // 税率フィールドに値がある場合、対応するチェックボックスフィールドをonにする
+    // Edit.phpはtax1_check等のパラメータを見てチェック状態を判定する
+    if (!isCalendarVariant && defaultFields.length > 0) {
+      defaultFields.forEach(field => {
+        if (field.uitype === '83' && field.taxClassDetails) {
+          const taxValue = processedFormData[field.taxClassDetails.taxname];
+          if (taxValue !== undefined && taxValue !== null && taxValue !== '') {
+            processedFormData[field.taxClassDetails.check_name] = 'on';
+          }
+        }
+      });
+    }
 
     if (onGoToFullForm) {
       onGoToFullForm({ editUrl: editViewUrl, formData: processedFormData });
@@ -771,7 +785,7 @@ const QuickCreateInner: React.FC<ExtendedQuickCreateProps> = ({
   }, [
     isCalendarVariant, isEditMode, recordId, activeTab,
     calendarEditViewUrl, calendarFormData, eventsFormData,
-    defaultEditViewUrl, formData, onGoToFullForm
+    defaultEditViewUrl, formData, onGoToFullForm, defaultFields
   ]);
 
   // ========================================
