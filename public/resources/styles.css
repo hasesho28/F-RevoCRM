@@ -1784,3 +1784,18 @@ input:focus ~ .bar:before, input:focus ~ .bar:after {
     color: #e65100;
 }
 
+/* CustomView: モバイル表示でのリスト共有ユーザー選択UIの修正 */
+@media (max-width: 767px) {
+  /* select2コンテナの幅を100%に拡張 */
+  #filterContainer #s2id_memberList,
+  #filterContainer #memberList + .select2-container {
+    width: 100% !important;
+    min-width: 0 !important;
+  }
+
+  /* select2ドロップダウンの幅もモバイルで適切に表示されるように */
+  .select2-drop {
+    min-width: 200px;
+  }
+}
+
