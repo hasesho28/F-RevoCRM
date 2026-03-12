@@ -244,6 +244,14 @@ export interface QuickCreateFieldData {
   datatype?: string;
   /** 複数選択可能かどうか（multireference型フィールドなど） */
   isMultiple?: boolean;
+  /** 税情報（UIType 83: ProductTax用） */
+  taxClassDetails?: {
+    taxname: string;
+    taxlabel: string;
+    percentage: string;
+    check_name: string;
+    check_value: string;
+  };
 }
 
 /**

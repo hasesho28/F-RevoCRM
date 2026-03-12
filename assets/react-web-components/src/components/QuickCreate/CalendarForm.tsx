@@ -136,8 +136,48 @@ export const CalendarForm: React.FC<CalendarFormProps> = ({
   const inviteeInputContainerRef = useRef<HTMLDivElement>(null);
   const [inviteeDropdownPosition, setInviteeDropdownPosition] = useState<{ top: number; left: number; width: number } | null>(null);
   const initialInviteesLoadedRef = useRef<boolean>(false);
+  // Track touch start position for swipe scrolling
+  const inviteeTouchStartYRef = useRef<number | null>(null);
 
   const isDisabled = isSaving || !!successMessage;
+
+  // Touch event listeners for mobile scrolling (must use passive: false to allow preventDefault)
+  useEffect(() => {
+    const dropdown = inviteeDropdownRef.current;
+    if (!dropdown || !isInviteeDropdownOpen) return;
+
+    const handleTouchStart = (e: TouchEvent) => {
+      inviteeTouchStartYRef.current = e.touches[0].clientY;
+    };
+
+    const handleTouchMove = (e: TouchEvent) => {
+      if (inviteeTouchStartYRef.current === null) return;
+
+      const touchCurrentY = e.touches[0].clientY;
+      const deltaY = inviteeTouchStartYRef.current - touchCurrentY;
+
+      dropdown.scrollTop += deltaY;
+      inviteeTouchStartYRef.current = touchCurrentY;
+
+      // Prevent page scroll while scrolling dropdown
+      e.preventDefault();
+      e.stopPropagation();
+    };
+
+    const handleTouchEnd = () => {
+      inviteeTouchStartYRef.current = null;
+    };
+
+    dropdown.addEventListener('touchstart', handleTouchStart, { passive: true });
+    dropdown.addEventListener('touchmove', handleTouchMove, { passive: false });
+    dropdown.addEventListener('touchend', handleTouchEnd, { passive: true });
+
+    return () => {
+      dropdown.removeEventListener('touchstart', handleTouchStart);
+      dropdown.removeEventListener('touchmove', handleTouchMove);
+      dropdown.removeEventListener('touchend', handleTouchEnd);
+    };
+  }, [isInviteeDropdownOpen]);
 
   /**
    * All-day checkbox state
@@ -781,7 +821,7 @@ export const CalendarForm: React.FC<CalendarFormProps> = ({
                 {isInviteeDropdownOpen && !isDisabled && inviteeDropdownPosition && createPortal(
                   <div
                     ref={inviteeDropdownRef}
-                    className="fixed z-[100003] bg-white border border-gray-200 rounded-md shadow-lg max-h-48 overflow-auto pointer-events-auto"
+                    className="fixed z-[100003] bg-white border border-gray-200 rounded-md shadow-lg max-h-48 overflow-auto pointer-events-auto select-none"
                     style={{
                       top: inviteeDropdownPosition.top,
                       left: inviteeDropdownPosition.left,
