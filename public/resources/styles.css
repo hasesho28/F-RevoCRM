@@ -1803,5 +1803,10 @@ input:focus ~ .bar:before, input:focus ~ .bar:after {
   .select2-drop {
     min-width: 200px;
   }
+
+  /* 共有ユーザー選択欄がフッターに隠れないようにスクロールコンテナに下部パディングを追加 */
+  #filterContainer .customview-content .mCSB_container {
+    padding-bottom: 70px;
+  }
 }
 
