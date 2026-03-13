@@ -20,6 +20,7 @@ import { cn } from '../../lib/utils';
 import { TranslationProvider } from '../../contexts/TranslationContext';
 import { useTranslation } from '../../hooks/useTranslation';
 import { transformCalendarDateTime } from '../../utils/datetime';
+import { validateFieldByUIType } from '../../utils/validation';
 
 /**
  * Activity type for Calendar variant
@@ -575,6 +576,12 @@ const QuickCreateInner: React.FC<ExtendedQuickCreateProps> = ({
         }
       }
 
+      // UIType-based validation (URL, Email, Integer, Double, etc.)
+      const uitypeError = validateFieldByUIType(field, value, t);
+      if (uitypeError) {
+        errors[field.name] = uitypeError;
+        return;
+      }
     });
 
     // Date range validation (calendar variant)
@@ -590,7 +597,7 @@ const QuickCreateInner: React.FC<ExtendedQuickCreateProps> = ({
 
     setValidationErrors(errors);
     return Object.keys(errors).length === 0;
-  }, [isCalendarVariant, calendarCurrentFields, defaultFields, currentCalendarFormData, formData]);
+  }, [isCalendarVariant, calendarCurrentFields, defaultFields, currentCalendarFormData, formData, t]);
 
   /**
    * Internal save function that performs the actual save
