@@ -692,8 +692,9 @@ button#advanceIntiateSave + input {
 
 /* モバイル: 2列 + 全幅モーダル */
 @media (max-width: 767px) {
-  /* クイック作成メニューが開いている時、カレンダーのアクションバーとアプリアイコンを非表示にする（iPhoneでのz-index問題対策） */
-  body:has(.dropdown.open > .quickCreateDropdown) .app-nav .module-action-bar,
+  /* クイック作成メニューが開いている時、カレンダーのアクションバー関連要素を非表示にする（iPhoneでのz-index問題対策） */
+  /* iOSでは.app-nav内の要素がタッチイベントを横取りするため、.app-nav全体を非表示にする */
+  body:has(.dropdown.open > .quickCreateDropdown) .app-nav,
   body:has(.dropdown.open > .quickCreateDropdown) .app-indicator-icon-container {
     visibility: hidden;
   }
