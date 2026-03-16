@@ -8,6 +8,7 @@ import { MultireferenceField } from './MultireferenceField';
 import { OwnerField } from './OwnerField';
 import { PicklistField } from './PicklistField';
 import { MultiPicklistField } from './MultiPicklistField';
+import { ProductTaxField } from './ProductTaxField';
 import { cn } from '../lib/utils';
 import { useOptionalTranslation } from '../hooks/useTranslation';
 
@@ -502,6 +503,52 @@ export const FieldRenderer: React.FC<FieldRendererProps> = ({
           </div>
         );
 
+      // 製品税 - ProductTaxField（チェックボックス + 税率入力）
+      // 旧版と同じく、ラベル部分にtaxLabelを表示（例: 消費税(%)）
+      case UI_TYPES.PRODUCT_TAX:
+        // taxClassDetailsがない場合はデフォルト値を使用
+        const taxDetails = field.taxClassDetails || {
+          taxname: field.name,
+          taxlabel: field.label + '(%)',
+          percentage: '10.000',
+          check_name: `check_${field.name}`,
+          check_value: '0'
+        };
+        // ProductTaxField用のカスタムラベル（taxlabelを使用）
+        const renderTaxLabel = () => (
+          <>
+            <span
+              className={cn(
+                'text-md text-gray-700 flex-shrink-0 w-[110px] text-right leading-[30px]',
+                (disabled || field.readonly) && 'text-gray-400'
+              )}
+            >
+              {taxDetails.taxlabel}
+              {field.mandatory && <span className="sr-only"> (必須)</span>}
+            </span>
+            <span className="w-3 leading-[30px] text-red-500 text-center flex-shrink-0" aria-hidden="true">
+              {field.mandatory ? '*' : ''}
+            </span>
+          </>
+        );
+        return (
+          <div className={cn('flex items-start gap-2', className)}>
+            {renderTaxLabel()}
+            <div className="flex-1 min-w-0 h-[30px] flex items-center">
+              <ProductTaxField
+                name={taxDetails.taxname}
+                label={taxDetails.taxlabel}
+                defaultTaxRate={taxDetails.percentage}
+                value={String(value ?? '')}
+                onChange={onChange}
+                disabled={disabled || field.readonly}
+                error={error}
+              />
+              {renderError()}
+            </div>
+          </div>
+        );
+
       // 参照フィールド - ReferenceField
       // UIType 10, 51, 52, 57, 58, 59, 66, 73, 75, 76, 77, 78, 80, 81, 101
       case UI_TYPES.REFERENCE:
@@ -628,6 +675,8 @@ export const isUITypeSupported = (uitype: string): boolean => {
     UI_TYPES.OWNER,
     // パスワード
     UI_TYPES.PASSWORD,
+    // 特殊
+    UI_TYPES.PRODUCT_TAX,
     // 参照系
     UI_TYPES.REFERENCE,
     UI_TYPES.REFERENCE_ACCOUNT,
@@ -688,6 +737,8 @@ export const getSupportedUITypes = (): string[] => {
     UI_TYPES.OWNER,
     // パスワード
     UI_TYPES.PASSWORD,
+    // 特殊
+    UI_TYPES.PRODUCT_TAX,
     // 参照系
     UI_TYPES.REFERENCE,
     UI_TYPES.REFERENCE_ACCOUNT,

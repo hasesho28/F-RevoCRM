@@ -494,6 +494,14 @@ Vtiger.Class('Vtiger_Index_Js', {
 			e.stopImmediatePropagation();
 			jQuery(e.currentTarget).closest('.dropdown').toggleClass('open');
 		});
+
+		// メニュー内をクリックしてもメニューが閉じないようにする（モジュール項目は除く）
+		jQuery(".quickCreateDropdown").on("click", function(e) {
+			// モジュール項目（.quickCreateModule）以外のクリックは伝播を止める
+			if (!jQuery(e.target).closest('.quickCreateModule').length) {
+				e.stopPropagation();
+			}
+		});
 	},
 
 	/**

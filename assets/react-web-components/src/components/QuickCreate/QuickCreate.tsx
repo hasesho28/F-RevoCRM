@@ -20,6 +20,7 @@ import { cn } from '../../lib/utils';
 import { TranslationProvider } from '../../contexts/TranslationContext';
 import { useTranslation } from '../../hooks/useTranslation';
 import { transformCalendarDateTime } from '../../utils/datetime';
+import { validateFieldByUIType } from '../../utils/validation';
 
 /**
  * Activity type for Calendar variant
@@ -184,7 +185,7 @@ const QuickCreateInner: React.FC<ExtendedQuickCreateProps> = ({
     isSaving: defaultIsSaving,
     error: defaultSaveError,
     clearError: clearDefaultSaveError
-  } = useQuickCreateSave(isCalendarVariant ? '' : module);
+  } = useQuickCreateSave(isCalendarVariant ? '' : module, defaultFields);
 
   const { getFilteredFields, getFieldsToClear, hasDependency } = usePicklistDependency(picklistDependency);
 
@@ -606,6 +607,12 @@ const QuickCreateInner: React.FC<ExtendedQuickCreateProps> = ({
         }
       }
 
+      // UIType-based validation (URL, Email, Integer, Double, etc.)
+      const uitypeError = validateFieldByUIType(field, value, t);
+      if (uitypeError) {
+        errors[field.name] = uitypeError;
+        return;
+      }
     });
 
     // Date range validation (calendar variant)
@@ -621,7 +628,7 @@ const QuickCreateInner: React.FC<ExtendedQuickCreateProps> = ({
 
     setValidationErrors(errors);
     return Object.keys(errors).length === 0;
-  }, [isCalendarVariant, calendarCurrentFields, defaultFields, currentCalendarFormData, formData]);
+  }, [isCalendarVariant, calendarCurrentFields, defaultFields, currentCalendarFormData, formData, t]);
 
   /**
    * Internal save function that performs the actual save
@@ -744,9 +751,23 @@ const QuickCreateInner: React.FC<ExtendedQuickCreateProps> = ({
 
     // Calendar系モジュールの場合、datetime-local形式を date + time に分割
     // Edit.phpはdate_start/time_start、due_date/time_endを別々のパラメータとして受け取るため
-    const processedFormData = isCalendarVariant
+    let processedFormData = isCalendarVariant
       ? transformCalendarDateTime(targetFormData)
-      : targetFormData;
+      : { ...targetFormData };
+
+    // ProductTaxフィールド（UIType 83）のチェックボックスを追加
+    // 税率フィールドに値がある場合、対応するチェックボックスフィールドをonにする
+    // Edit.phpはtax1_check等のパラメータを見てチェック状態を判定する
+    if (!isCalendarVariant && defaultFields.length > 0) {
+      defaultFields.forEach(field => {
+        if (field.uitype === '83' && field.taxClassDetails) {
+          const taxValue = processedFormData[field.taxClassDetails.taxname];
+          if (taxValue !== undefined && taxValue !== null && taxValue !== '') {
+            processedFormData[field.taxClassDetails.check_name] = 'on';
+          }
+        }
+      });
+    }
 
     if (onGoToFullForm) {
       onGoToFullForm({ editUrl: editViewUrl, formData: processedFormData });
@@ -802,7 +823,7 @@ const QuickCreateInner: React.FC<ExtendedQuickCreateProps> = ({
   }, [
     isCalendarVariant, isEditMode, recordId, activeTab,
     calendarEditViewUrl, calendarFormData, eventsFormData,
-    defaultEditViewUrl, formData, onGoToFullForm
+    defaultEditViewUrl, formData, onGoToFullForm, defaultFields
   ]);
 
   // ========================================
