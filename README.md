@@ -93,6 +93,13 @@ sql_mode=NO_ENGINE_SUBSTITUTION
 service mysqld restart
 ```
 
+***注意点（MySQL 8.0以降）**
+
+`sql_generate_invisible_primary_key`がONの場合、セットアップが正常に完了しません。以下の設定でOFFにしてください。
+```sql
+SET GLOBAL sql_generate_invisible_primary_key = OFF;
+```
+
 ~~MySQL8.0以降の場合は、認証モードの変更が必要です。~~
 
 **※ PHP 7.4.4以降では `caching_sha2_password`（MySQL 8.0のデフォルト認証）がサポートされているため、`mysql_native_password` への変更は不要です。**
