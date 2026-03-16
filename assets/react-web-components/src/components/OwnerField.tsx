@@ -114,8 +114,14 @@ export const OwnerField: React.FC<OwnerFieldProps> = ({
     };
   }, [isOpen, dropdownPosition]);
 
+  // 翻訳済みのラベルをキーとして使用（APIは翻訳済み文字列をキーとして返す）
+  const userLabel = t('LBL_USERS', 'ユーザー');
+  const groupLabel = t('LBL_GROUPS', 'グループ');
+
   /**
    * picklistvaluesからユーザーとグループのオプションを抽出
+   * picklistvaluesのキーは、APIから翻訳済みラベルとして返される
+   * t()で翻訳したラベルをキーとして使用することで、どの言語でも対応可能
    */
   const allOptions = useMemo(() => {
     const options: OwnerOption[] = [];
@@ -123,17 +129,17 @@ export const OwnerField: React.FC<OwnerFieldProps> = ({
     if (fieldinfo?.picklistvalues) {
       const picklistValues = fieldinfo.picklistvalues as Record<string, Record<string, string>>;
 
-      // ユーザーを取得
-      if (picklistValues['ユーザー'] && typeof picklistValues['ユーザー'] === 'object') {
-        const userObj = picklistValues['ユーザー'] as { [id: string]: string };
+      // ユーザーを取得（t('LBL_USERS')の翻訳結果をキーとして使用）
+      if (picklistValues[userLabel] && typeof picklistValues[userLabel] === 'object') {
+        const userObj = picklistValues[userLabel] as { [id: string]: string };
         Object.entries(userObj).forEach(([id, name]) => {
           options.push({ id, name, type: 'user' });
         });
       }
 
-      // グループを取得
-      if (picklistValues['グループ'] && typeof picklistValues['グループ'] === 'object') {
-        const groupObj = picklistValues['グループ'];
+      // グループを取得（t('LBL_GROUPS')の翻訳結果をキーとして使用）
+      if (picklistValues[groupLabel] && typeof picklistValues[groupLabel] === 'object') {
+        const groupObj = picklistValues[groupLabel];
         if (!Array.isArray(groupObj)) {
           Object.entries(groupObj).forEach(([id, name]) => {
             options.push({ id, name: name as string, type: 'group' });
@@ -143,7 +149,7 @@ export const OwnerField: React.FC<OwnerFieldProps> = ({
     }
 
     return options;
-  }, [fieldinfo]);
+  }, [fieldinfo, userLabel, groupLabel]);
 
   /**
    * 検索でフィルタリングされたオプション
@@ -307,7 +313,7 @@ export const OwnerField: React.FC<OwnerFieldProps> = ({
             {filteredUsers.length > 0 && (
               <>
                 <div className="px-3 py-1 text-xs font-semibold text-gray-500 bg-gray-50">
-                  ユーザー
+                  {userLabel}
                 </div>
                 {filteredUsers.map(user => (
                   <div
@@ -328,7 +334,7 @@ export const OwnerField: React.FC<OwnerFieldProps> = ({
             {filteredGroups.length > 0 && (
               <>
                 <div className="px-3 py-1 text-xs font-semibold text-gray-500 bg-gray-50">
-                  グループ
+                  {groupLabel}
                 </div>
                 {filteredGroups.map(group => (
                   <div
@@ -347,7 +353,7 @@ export const OwnerField: React.FC<OwnerFieldProps> = ({
           </div>
         ) : (
           <div className="px-3 py-1.5 text-md text-gray-500 text-center">
-            該当する担当者がいません
+            {t('LBL_NO_MATCHING_OWNER', '該当する担当者がいません')}
           </div>
         )}
       </div>
