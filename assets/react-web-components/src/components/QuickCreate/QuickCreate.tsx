@@ -592,7 +592,20 @@ const QuickCreateInner: React.FC<ExtendedQuickCreateProps> = ({
 
       // Required check
       if (field.mandatory) {
-        const isEmpty = value === undefined || value === null || value === '' || value === false;
+        // Check for empty values including whitespace-only strings
+        let isEmpty = value === undefined || value === null || value === '' || value === false ||
+          (typeof value === 'string' && value.trim() === '');
+
+        // Additional check for datetime fields (uitype 6, 23): ensure date part is present
+        // datetime-local format is "YYYY-MM-DDTHH:MM", date part must be valid
+        if (!isEmpty && typeof value === 'string' && (field.uitype === '6' || field.uitype === '23')) {
+          const datePart = value.split('T')[0];
+          // Date part must be in YYYY-MM-DD format and be a valid date
+          if (!datePart || !/^\d{4}-\d{2}-\d{2}$/.test(datePart) || isNaN(Date.parse(datePart))) {
+            isEmpty = true;
+          }
+        }
+
         if (isEmpty) {
           errors[field.name] = t('LBL_FIELD_REQUIRED', field.label);
           return;
