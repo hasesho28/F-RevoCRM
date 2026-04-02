@@ -9,6 +9,7 @@ import { OwnerField } from './OwnerField';
 import { PicklistField } from './PicklistField';
 import { MultiPicklistField } from './MultiPicklistField';
 import { ProductTaxField } from './ProductTaxField';
+import { CurrencyListField } from './CurrencyListField';
 import { cn } from '../lib/utils';
 import { useOptionalTranslation } from '../hooks/useTranslation';
 
@@ -549,6 +550,24 @@ export const FieldRenderer: React.FC<FieldRendererProps> = ({
           </div>
         );
 
+      // 通貨リスト - CurrencyListField（UIType 117）
+      case UI_TYPES.CURRENCY_LIST:
+        // fieldinfo.currencyListから通貨リストを取得
+        const currencyList = (field.fieldinfo?.currencyList as Record<string, string>) || {};
+        return (
+          <CurrencyListField
+            name={field.name}
+            label={field.label}
+            value={String(value ?? '')}
+            onChange={onChange}
+            currencyList={currencyList}
+            mandatory={field.mandatory}
+            disabled={disabled || field.readonly}
+            error={error}
+            className={className}
+          />
+        );
+
       // 参照フィールド - ReferenceField
       // UIType 10, 51, 52, 57, 58, 59, 66, 73, 75, 76, 77, 78, 80, 81, 101
       case UI_TYPES.REFERENCE:
@@ -677,6 +696,7 @@ export const isUITypeSupported = (uitype: string): boolean => {
     UI_TYPES.PASSWORD,
     // 特殊
     UI_TYPES.PRODUCT_TAX,
+    UI_TYPES.CURRENCY_LIST,
     // 参照系
     UI_TYPES.REFERENCE,
     UI_TYPES.REFERENCE_ACCOUNT,
@@ -739,6 +759,7 @@ export const getSupportedUITypes = (): string[] => {
     UI_TYPES.PASSWORD,
     // 特殊
     UI_TYPES.PRODUCT_TAX,
+    UI_TYPES.CURRENCY_LIST,
     // 参照系
     UI_TYPES.REFERENCE,
     UI_TYPES.REFERENCE_ACCOUNT,
