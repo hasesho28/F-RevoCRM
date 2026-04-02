@@ -53,6 +53,8 @@ export interface CalendarFormProps {
   validationErrors: Record<string, string>;
   /** Whether in edit mode */
   isEditMode?: boolean;
+  /** Whether in duplicate mode */
+  isDuplicateMode?: boolean;
   /** Available users for invitee selection (Events only) */
   availableUsers: UserInfo[];
   /** Time options (10-minute intervals) */
@@ -115,6 +117,7 @@ export const CalendarForm: React.FC<CalendarFormProps> = ({
   successMessage,
   validationErrors,
   isEditMode = false,
+  isDuplicateMode = false,
   availableUsers,
   timeOptions,
   parseDateTimeValue,
@@ -287,16 +290,16 @@ export const CalendarForm: React.FC<CalendarFormProps> = ({
 
   /**
    * Reset invitee state when tab changes (only for new mode)
-   * In edit mode, preserve the selected invitees
+   * In edit mode or duplicate mode, preserve the selected invitees
    */
   useEffect(() => {
-    if (!isEditMode) {
+    if (!isEditMode && !isDuplicateMode) {
       setSelectedInvitees([]);
       setInviteeSearchTerm('');
       setIsInviteeDropdownOpen(false);
       initialInviteesLoadedRef.current = false;
     }
-  }, [activeTab, isEditMode]);
+  }, [activeTab, isEditMode, isDuplicateMode]);
 
   /**
    * Update formData with selected invitees

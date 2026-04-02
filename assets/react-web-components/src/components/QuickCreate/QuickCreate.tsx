@@ -889,6 +889,7 @@ const QuickCreateInner: React.FC<ExtendedQuickCreateProps> = ({
               successMessage={successMessage}
               validationErrors={validationErrors}
               isEditMode={isEditMode}
+              isDuplicateMode={isDuplicateMode}
               availableUsers={availableUsers}
               timeOptions={timeOptions}
               parseDateTimeValue={parseDateTimeValue}
@@ -896,7 +897,7 @@ const QuickCreateInner: React.FC<ExtendedQuickCreateProps> = ({
               parseReminderValue={parseReminderValue}
               combineReminderValue={combineReminderValue}
               initialSelectedInvitees={
-                isEditMode && recordData?.selectedusers
+                (isEditMode || isDuplicateMode) && recordData?.selectedusers
                   ? (recordData.selectedusers as string[])
                   : undefined
               }
