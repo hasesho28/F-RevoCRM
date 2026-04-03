@@ -423,6 +423,28 @@ const QuickCreateInner: React.FC<ExtendedQuickCreateProps> = ({
       return undefined;
     };
 
+    // Helper function to generate default datetime values
+    // Uses defaultOtherEventDuration for end time calculation
+    const getDefaultDateTimeValues = () => {
+      const now = new Date();
+      const dateStr = now.toISOString().slice(0, 10); // YYYY-MM-DD
+      const hours = now.getHours().toString().padStart(2, '0');
+      // Round minutes to 5-minute intervals
+      const minutes = Math.floor(now.getMinutes() / 5) * 5;
+      const timeStr = `${hours}:${minutes.toString().padStart(2, '0')}`;
+      const startDateTime = `${dateStr}T${timeStr}`;
+
+      // End time = start time + defaultOtherEventDuration minutes
+      const endDate = new Date(now.getTime() + defaultOtherEventDuration * 60 * 1000);
+      const endDateStr = endDate.toISOString().slice(0, 10);
+      const endHours = endDate.getHours().toString().padStart(2, '0');
+      const endMinutes = Math.floor(endDate.getMinutes() / 5) * 5;
+      const endTimeStr = `${endHours}:${endMinutes.toString().padStart(2, '0')}`;
+      const endDateTime = `${endDateStr}T${endTimeStr}`;
+
+      return { startDateTime, endDateTime };
+    };
+
     if (calendarFields.length > 0) {
       const calInitial: Record<string, any> = { ...initialData };
       calendarFields.forEach(field => {
@@ -433,6 +455,19 @@ const QuickCreateInner: React.FC<ExtendedQuickCreateProps> = ({
           }
         }
       });
+      // Set default datetime if not provided (for new mode)
+      // Check for empty, whitespace-only, or missing values
+      const isDateStartEmpty = !calInitial.date_start || (typeof calInitial.date_start === 'string' && calInitial.date_start.trim() === '');
+      const isDueDateEmpty = !calInitial.due_date || (typeof calInitial.due_date === 'string' && calInitial.due_date.trim() === '');
+      if (isDateStartEmpty || isDueDateEmpty) {
+        const { startDateTime, endDateTime } = getDefaultDateTimeValues();
+        if (isDateStartEmpty) {
+          calInitial.date_start = startDateTime;
+        }
+        if (isDueDateEmpty) {
+          calInitial.due_date = endDateTime;
+        }
+      }
       setCalendarFormData(calInitial);
     }
 
@@ -446,6 +481,19 @@ const QuickCreateInner: React.FC<ExtendedQuickCreateProps> = ({
           }
         }
       });
+      // Set default datetime if not provided (for new mode)
+      // Check for empty, whitespace-only, or missing values
+      const isEvtDateStartEmpty = !evtInitial.date_start || (typeof evtInitial.date_start === 'string' && evtInitial.date_start.trim() === '');
+      const isEvtDueDateEmpty = !evtInitial.due_date || (typeof evtInitial.due_date === 'string' && evtInitial.due_date.trim() === '');
+      if (isEvtDateStartEmpty || isEvtDueDateEmpty) {
+        const { startDateTime, endDateTime } = getDefaultDateTimeValues();
+        if (isEvtDateStartEmpty) {
+          evtInitial.date_start = startDateTime;
+        }
+        if (isEvtDueDateEmpty) {
+          evtInitial.due_date = endDateTime;
+        }
+      }
       setEventsFormData(evtInitial);
     }
 
@@ -469,7 +517,7 @@ const QuickCreateInner: React.FC<ExtendedQuickCreateProps> = ({
       clearSaveError();
       isInitializedRef.current = true;
     }
-  }, [isCalendarVariant, isEditMode, isOpen, calendarFields, eventsFields, initialData, clearSaveError]);
+  }, [isCalendarVariant, isEditMode, isDuplicateMode, isOpen, calendarFields, eventsFields, initialData, defaultOtherEventDuration, clearSaveError]);
 
   // ========================================
   // Handlers
