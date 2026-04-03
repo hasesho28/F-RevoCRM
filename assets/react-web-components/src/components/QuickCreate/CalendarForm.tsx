@@ -410,6 +410,11 @@ export const CalendarForm: React.FC<CalendarFormProps> = ({
     const { date, time } = parseDateTimeValue(currentValue);
     const error = validationErrors[fieldName];
 
+    // ToDoの完了日（due_date）は日付のみ入力（編集画面と同じ仕様）
+    // Events/ToDoの開始日時、Eventsの終了日時は日付+時刻入力
+    const isDateOnly = activeTab === 'Calendar' && fieldName === 'due_date';
+    const shouldShowTime = !isAllDay && !isDateOnly;
+
     return (
       <div className="flex items-start gap-2">
         {/* ラベル - FieldRendererと同じスタイル */}
@@ -433,7 +438,7 @@ export const CalendarForm: React.FC<CalendarFormProps> = ({
               type="date"
               value={date}
               onChange={(e) => {
-                const newValue = combineDateTimeValue(e.target.value, isAllDay ? '' : time);
+                const newValue = combineDateTimeValue(e.target.value, shouldShowTime ? time : '');
                 if (fieldName === 'date_start') {
                   handleDateStartChange(newValue);
                 } else {
@@ -442,10 +447,10 @@ export const CalendarForm: React.FC<CalendarFormProps> = ({
               }}
               onFocus={handleDateTimeFieldFocus}
               disabled={isDisabled}
-              className={cn(isAllDay ? 'w-full' : 'flex-1', error && 'border-red-500')}
+              className={cn(!shouldShowTime ? 'w-full' : 'flex-1', error && 'border-red-500')}
             />
-            {/* Time select (hidden when all-day) */}
-            {!isAllDay && (
+            {/* Time select (hidden when all-day or date-only field like ToDo's due_date) */}
+            {shouldShowTime && (
               <TimeComboBox
                 value={time}
                 onChange={(newTime) => {

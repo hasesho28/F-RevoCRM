@@ -465,7 +465,9 @@ const QuickCreateInner: React.FC<ExtendedQuickCreateProps> = ({
           calInitial.date_start = startDateTime;
         }
         if (isDueDateEmpty) {
-          calInitial.due_date = endDateTime;
+          // ToDoの完了日（due_date）は日付のみ（編集画面と同じ仕様）
+          // endDateTimeから日付部分のみを抽出
+          calInitial.due_date = endDateTime.split('T')[0];
         }
       }
       setCalendarFormData(calInitial);
