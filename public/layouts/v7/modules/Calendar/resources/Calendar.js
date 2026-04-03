@@ -1679,9 +1679,14 @@ Vtiger.Class("Calendar_Calendar_Js", {
 
 	},
 	showCreateTaskModal: function () {
-		this.showCreateModal('Calendar');
+		// ボタンから開いた場合は現在日時をデフォルト設定
+		this.showCreateModal('Calendar', moment());
 	},
 	showCreateEventModal: function (startDateTime) {
+		// ボタンから開いた場合（startDateTimeが未指定）は現在日時をデフォルト設定
+		if (!startDateTime) {
+			startDateTime = moment();
+		}
 		this.showCreateModal('Events', startDateTime);
 	},
 	showCreateTaskModalforDrag: function () {
