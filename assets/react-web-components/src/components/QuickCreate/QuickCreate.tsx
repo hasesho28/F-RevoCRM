@@ -15,7 +15,7 @@ import { usePicklistDependency } from './hooks/usePicklistDependency';
 import { useCalendarFields } from './hooks/useCalendarFields';
 import { useRecordData } from './hooks/useRecordData';
 import { QuickCreateProps } from '../../types/quickcreate';
-import { FieldInfo, FieldValue } from '../../types/field';
+import { FieldInfo, FieldValue, UI_TYPES } from '../../types/field';
 import { cn } from '../../lib/utils';
 import { TranslationProvider } from '../../contexts/TranslationContext';
 import { useTranslation } from '../../hooks/useTranslation';
@@ -415,7 +415,9 @@ const QuickCreateInner: React.FC<ExtendedQuickCreateProps> = ({
       if (field.name === 'assigned_user_id') {
         return (window as any)._USERMETA?.id || '1';
       }
-      if (field.mandatory && field.picklistValues && field.picklistValues.length > 0) {
+      // 必須のpicklistフィールドは先頭の選択肢をデフォルト値として設定
+      // ただし、multipicklistは複数選択のため、ユーザーに選択させる（自動選択しない）
+      if (field.mandatory && field.picklistValues && field.picklistValues.length > 0 && field.uitype !== UI_TYPES.MULTIPICKLIST) {
         return field.picklistValues[0].value;
       }
       return undefined;
