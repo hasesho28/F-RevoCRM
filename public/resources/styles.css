@@ -1811,3 +1811,8 @@ input:focus ~ .bar:before, input:focus ~ .bar:after {
   }
 }
 
+/* #1479 4Kモニターでトグルスイッチを表示した際のUI崩れを修正 */
+.bootstrap-switch .bootstrap-switch-container {
+    white-space: nowrap;
+}
+
