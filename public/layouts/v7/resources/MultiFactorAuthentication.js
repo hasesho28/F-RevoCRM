@@ -559,6 +559,8 @@ window.FR_MultiFactorAuthentication_Js = {
      * 3. ログイン失敗判定 → 表示切替処理実行
      */
     init: function () {
+        if (this.initialized) return;
+        this.initialized = true;
         this.autoTriggered = false;
         this.cacheDom();
         // MFA画面でない場合は処理をスキップ
