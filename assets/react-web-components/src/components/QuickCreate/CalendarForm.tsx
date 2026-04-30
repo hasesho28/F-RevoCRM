@@ -520,6 +520,7 @@ export const CalendarForm: React.FC<CalendarFormProps> = ({
               disabled={isDisabled}
               error={validationErrors[subject.name]}
               formData={formData}
+              module={activeTab}
             />
           </div>
         )}
@@ -587,7 +588,10 @@ export const CalendarForm: React.FC<CalendarFormProps> = ({
                       onRecordTypeChange={onRecordTypeChange}
                       disabled={isDisabled}
                       error={validationErrors[field.name]}
+                      className="w-full flex-col items-stretch md:flex-row md:items-start"
+                      labelClassName="w-full text-left leading-normal md:w-[110px] md:text-right md:leading-[30px]"
                       formData={formData}
+                      module={activeTab}
                     />
                   </div>
                 ))}
