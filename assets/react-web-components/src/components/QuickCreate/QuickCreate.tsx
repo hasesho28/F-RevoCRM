@@ -426,8 +426,17 @@ const QuickCreateInner: React.FC<ExtendedQuickCreateProps> = ({
     // Helper function to generate default datetime values
     // Uses defaultOtherEventDuration for end time calculation
     const getDefaultDateTimeValues = () => {
+      // ローカルタイムゾーン基準でYYYY-MM-DDを生成
+      // toISOString()はUTC日付を返すため、JST 0:00-8:59帯で前日日付になる不具合を回避
+      const formatLocalDate = (d: Date): string => {
+        const year = d.getFullYear();
+        const month = String(d.getMonth() + 1).padStart(2, '0');
+        const day = String(d.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+      };
+
       const now = new Date();
-      const dateStr = now.toISOString().slice(0, 10); // YYYY-MM-DD
+      const dateStr = formatLocalDate(now);
       const hours = now.getHours().toString().padStart(2, '0');
       // Round minutes to 5-minute intervals
       const minutes = Math.floor(now.getMinutes() / 5) * 5;
@@ -436,7 +445,7 @@ const QuickCreateInner: React.FC<ExtendedQuickCreateProps> = ({
 
       // End time = start time + defaultOtherEventDuration minutes
       const endDate = new Date(now.getTime() + defaultOtherEventDuration * 60 * 1000);
-      const endDateStr = endDate.toISOString().slice(0, 10);
+      const endDateStr = formatLocalDate(endDate);
       const endHours = endDate.getHours().toString().padStart(2, '0');
       const endMinutes = Math.floor(endDate.getMinutes() / 5) * 5;
       const endTimeStr = `${endHours}:${endMinutes.toString().padStart(2, '0')}`;
