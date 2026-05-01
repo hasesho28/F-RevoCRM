@@ -249,6 +249,8 @@ export const UI_TYPES = {
   // 特殊UIType
   /** 製品税（チェックボックス + 税率入力） */
   PRODUCT_TAX: '83',
+  /** 通貨リスト（選択式） */
+  CURRENCY_LIST: '117',
 } as const;
 
 /**

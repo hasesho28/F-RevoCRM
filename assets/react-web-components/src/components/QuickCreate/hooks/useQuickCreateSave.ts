@@ -92,6 +92,12 @@ export function useQuickCreateSave(module: string, fields?: FieldInfo[]): UseQui
         ? transformCalendarDateTime(processedData)
         : processedData;
 
+      // ToDoの場合（module === 'Calendar'）、time_end は不要
+      // ToDoの完了日（due_date）は日付のみで、時刻は使用しない（編集画面と同じ仕様）
+      if (module === 'Calendar') {
+        delete processedData.time_end;
+      }
+
       // ProductTaxフィールドのチェックボックス値を追加
       if (fields && fields.length > 0) {
         processedData = transformProductTaxData(processedData, fields);
