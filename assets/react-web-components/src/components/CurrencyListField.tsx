@@ -286,7 +286,7 @@ export const CurrencyListField: React.FC<CurrencyListFieldProps> = ({
           </div>
         ) : (
           <div className="px-3 py-1.5 text-md text-gray-500 text-center">
-            {t('LBL_NO_MATCHING_CURRENCY', '該当する通貨がありません')}
+            {t('LBL_NO_MATCHING_CURRENCY')}
           </div>
         )}
       </div>
