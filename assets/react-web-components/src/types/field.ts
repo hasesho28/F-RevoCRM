@@ -72,6 +72,8 @@ export interface FieldInfo {
   datatype?: string;
   /** カスタムバリデーション設定 */
   customValidations?: CustomValidation[];
+  /** Jodit相当のHTMLリッチテキストフィールドかどうか */
+  isJoditEditor?: boolean;
   /** 税情報（UIType 83: ProductTax用） */
   taxClassDetails?: TaxClassDetails;
 }
@@ -140,10 +142,14 @@ export interface FieldRendererProps {
   error?: string;
   /** カスタムクラス名 */
   className?: string;
+  /** ラベルのカスタムクラス名（縦並び時の左寄せなどに使用） */
+  labelClassName?: string;
   /** RecordType変更時のコールバック（RecordTypeフィールドの場合のみ） */
   onRecordTypeChange?: (fieldName: string, value: string) => void;
   /** フォームデータ全体（参照フィールドの表示値取得に使用） */
   formData?: Record<string, FieldValue>;
+  /** 対象モジュール名 */
+  module?: string;
 }
 
 /**

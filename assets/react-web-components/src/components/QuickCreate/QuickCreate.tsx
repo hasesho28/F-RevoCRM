@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import {
   Dialog,
-  DialogContent
+  DialogContent,
+  DialogDescription
 } from '../ui/dialog';
 import { Alert, AlertDescription } from '../ui/alert';
 import { Loader2, XCircle } from 'lucide-react';
@@ -21,6 +22,7 @@ import { TranslationProvider } from '../../contexts/TranslationContext';
 import { useTranslation } from '../../hooks/useTranslation';
 import { transformCalendarDateTime } from '../../utils/datetime';
 import { validateFieldByUIType } from '../../utils/validation';
+import { syncJoditEditorFormData } from '../../utils/joditEditor';
 
 /**
  * Activity type for Calendar variant
@@ -585,7 +587,11 @@ const QuickCreateInner: React.FC<ExtendedQuickCreateProps> = ({
   const validateForm = useCallback((): boolean => {
     const errors: Record<string, string> = {};
     const targetFields = isCalendarVariant ? calendarCurrentFields : defaultFields;
-    const targetFormData = isCalendarVariant ? currentCalendarFormData : formData;
+    const targetFormData = syncJoditEditorFormData(
+      isCalendarVariant ? activeTab : module,
+      isCalendarVariant ? currentCalendarFormData : formData,
+      targetFields
+    );
 
     targetFields.forEach(field => {
       const value = targetFormData[field.name];
@@ -628,7 +634,7 @@ const QuickCreateInner: React.FC<ExtendedQuickCreateProps> = ({
 
     setValidationErrors(errors);
     return Object.keys(errors).length === 0;
-  }, [isCalendarVariant, calendarCurrentFields, defaultFields, currentCalendarFormData, formData, t]);
+  }, [isCalendarVariant, activeTab, module, calendarCurrentFields, defaultFields, currentCalendarFormData, formData, t]);
 
   /**
    * Internal save function that performs the actual save
@@ -751,6 +757,12 @@ const QuickCreateInner: React.FC<ExtendedQuickCreateProps> = ({
 
     // Calendar系モジュールの場合、datetime-local形式を date + time に分割
     // Edit.phpはdate_start/time_start、due_date/time_endを別々のパラメータとして受け取るため
+    targetFormData = syncJoditEditorFormData(
+      isCalendarVariant ? activeTab : module,
+      targetFormData,
+      isCalendarVariant ? calendarCurrentFields : defaultFields
+    );
+
     let processedFormData = isCalendarVariant
       ? transformCalendarDateTime(targetFormData)
       : { ...targetFormData };
@@ -823,7 +835,7 @@ const QuickCreateInner: React.FC<ExtendedQuickCreateProps> = ({
   }, [
     isCalendarVariant, isEditMode, recordId, activeTab,
     calendarEditViewUrl, calendarFormData, eventsFormData,
-    defaultEditViewUrl, formData, onGoToFullForm, defaultFields
+    defaultEditViewUrl, formData, onGoToFullForm, defaultFields, calendarCurrentFields, module
   ]);
 
   // ========================================
@@ -839,7 +851,12 @@ const QuickCreateInner: React.FC<ExtendedQuickCreateProps> = ({
           'sm:max-w-[900px]'
         )}
         closeButtonClassName="absolute top-2 right-3 !text-white hover:!text-gray-200 transition-opacity"
+        portalClassName="quickcreate-dialog-portal"
       >
+        <DialogDescription className="sr-only">
+          {moduleLabel || module}
+        </DialogDescription>
+
         {/* Header - 両バリアントで統一コンポーネントを使用 */}
         <QuickCreateHeader
           moduleLabel={moduleLabel || module}
